@@ -102,3 +102,31 @@ void GetCurrentIntersectionVertice(AttributeData attributeData, out Intersection
 	outVertex.texCoord2Area = abs((v1.texCoord2.x - v0.texCoord2.x) * (v2.texCoord2.y - v0.texCoord2.y) - (v2.texCoord2.x - v0.texCoord2.x) * (v1.texCoord2.y - v0.texCoord2.y));
 	outVertex.texCoord3Area = abs((v1.texCoord3.x - v0.texCoord3.x) * (v2.texCoord3.y - v0.texCoord3.y) - (v2.texCoord3.x - v0.texCoord3.x) * (v1.texCoord3.y - v0.texCoord3.y));
 }
+
+float2 GetIntersectionTextureCoordinates(IntersectionVertice input, float4 uvMask, float2 tiling, float2 offset)
+{
+    // Generate the primary uv coordinates
+    float2 uv = uvMask.x * input.texCoord0.xy +
+                uvMask.y * input.texCoord1.xy +
+                uvMask.z * input.texCoord2.xy +
+                uvMask.w * input.texCoord3.xy;
+
+    // Apply tiling and offset
+    uv = uv * tiling + offset;
+
+    return uv;
+}
+
+float GetIntersectionTextureArea(IntersectionVertice input, float4 uvMask, float2 tiling)
+{
+    // Fetch the target area based on the mask
+    float area = uvMask.x * input.texCoord0Area +
+                 uvMask.y * input.texCoord1Area +
+                 uvMask.z * input.texCoord2Area +
+                 uvMask.w * input.texCoord3Area;
+
+    // Apply tiling factor to the tex coord area
+    area *= tiling.x * tiling.y;
+
+    return area;
+}
