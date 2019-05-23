@@ -1805,7 +1805,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
                     }
-                    
+
                     DispatchContactShadows();
                 }
 
@@ -2564,8 +2564,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
-            if (currentEnv != null && currentEnv.raytracedObjects)
-                    {
+            RecursiveRendering recursiveRendering = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+
+            if (currentEnv != null && recursiveRendering.enable.value)
+            {
                 result.rayTracingOpaqueRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing);
                 result.rayTracingTransparentRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
             }
