@@ -161,7 +161,6 @@ namespace UnityEditor.ShaderGraph
                             enumValuesString = string.Join(", ", enumNames);
                             break;
                         default:
-                        case EnumType.Enum:
                             for (int i = 0; i < enumNames.Count; i++)
                             {
                                 int value = (i < enumValues.Count) ? enumValues[i] : i;
