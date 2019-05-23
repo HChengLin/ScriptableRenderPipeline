@@ -29,5 +29,5 @@ float computeTargetTextureLOD(Texture2D targetTexture, float baseLambda)
     uint texWidth, texHeight, numMips;
     targetTexture.GetDimensions(0, texWidth, texHeight, numMips);
 
-    return texWidth && texHeight ? baseLambda + 0.5 * log2(texWidth * texHeight) : baseLambda;
+    return max(0.0, texWidth && texHeight ? baseLambda + 0.5 * log2(texWidth * texHeight) : baseLambda);
 }

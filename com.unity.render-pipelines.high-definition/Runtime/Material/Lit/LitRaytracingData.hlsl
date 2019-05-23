@@ -2,6 +2,50 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
 
+float2 GetIntersectionTextureCoordinates(FragInputs input, bool planarMapping, float4 uvMask, float2 tiling, float2 offset, float worldScale)
+{
+    float2 uv;
+    if (!planarMapping)
+    {
+        uv = uvMask.x * input.texCoord0.xy +
+             uvMask.y * input.texCoord1.xy +
+             uvMask.z * input.texCoord2.xy +
+             uvMask.w * input.texCoord3.xy;
+    }
+    else // Supports planar only
+    {
+        float3 p = GetAbsolutePositionWS(input.positionRWS);
+        uv.x = p.x * worldScale;
+        uv.y = p.z * worldScale;
+    }
+
+    // Apply tiling and offset
+    uv = uv * tiling + offset;
+
+    return uv;
+}
+
+float GetIntersectionTextureArea(IntersectionVertice input, bool planarMapping, float4 uvMask, float2 tiling, float worldScale)
+{
+    float area;
+    if (!planarMapping)
+    {
+        area = uvMask.x * input.texCoord0Area +
+               uvMask.y * input.texCoord1Area +
+               uvMask.z * input.texCoord2Area +
+               uvMask.w * input.texCoord3Area;
+    }
+    else // Supports planar only
+    {
+        area = input.triangleArea * worldScale * worldScale;
+    }
+
+    // Apply tiling factor to the tex coord area
+    area *= tiling.x * tiling.y;
+
+    return area;
+}
+
 bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef _DOUBLESIDED_ON
@@ -35,12 +79,25 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
 #endif
 
     // Generate the primary UV coordinates and area
-    const float2 uvBase = GetIntersectionTextureCoordinates(intersectionVertice, _UVMappingMask, _BaseColorMap_ST.xy, _BaseColorMap_ST.zw);
+
+#if defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR) // Triplanar mapping will default to planar
+    const bool planarMapping = true;
+#else
+    const bool planarMapping = false;
+#endif
+
+    const float2 uvBase = GetIntersectionTextureCoordinates(input, planarMapping, _UVMappingMask, _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _TexWorldScale);
 
     // Compute base LOD for all textures (all using the same UV parameterization)
     #ifdef USE_RAY_CONE_LOD
-    const float uvArea = GetIntersectionTextureArea(intersectionVertice, _UVMappingMask, _BaseColorMap_ST.xy);
-    const float baseLOD = computeBaseTextureLOD(V, input.worldToTangent[2], rayCone.width, uvArea, intersectionVertice.triangleArea);
+
+    // Convert the cone width to object space, since it is the space we computed primitive areas in
+    const float3x3 worldToObject = (float3x3)WorldToObject3x4();
+    const float3 scale3 = float3(length(worldToObject[0]), length(worldToObject[1]), length(worldToObject[2]));
+    const float coneWidthOS = rayCone.width * (scale3.x + scale3.y + scale3.z) / 3;
+
+    const float uvArea = GetIntersectionTextureArea(intersectionVertice, planarMapping, _UVMappingMask, _BaseColorMap_ST.xy, _TexWorldScale);
+    const float baseLOD = computeBaseTextureLOD(V, input.worldToTangent[2], coneWidthOS, uvArea, intersectionVertice.triangleArea);
     #else
     const float baseLOD = 0;
     #endif
