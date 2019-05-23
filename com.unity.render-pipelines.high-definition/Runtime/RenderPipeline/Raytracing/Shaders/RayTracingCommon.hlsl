@@ -1,7 +1,7 @@
 // This array converts an index to the local coordinate shift of the half resolution texture
 static const uint2 HalfResIndexToCoordinateShift[4] = { uint2(0,0), uint2(1, 0), uint2(0, 1), uint2(1, 1) };
 
-// Mapping from roughness (GGX in particular) to ray spread angle
+// Heuristic mapping from roughness (GGX in particular) to ray spread angle
 float roughnessToSpreadAngle(float roughness)
 {
     // FIXME: The mapping will most likely need adjustment...
@@ -29,5 +29,5 @@ float computeTargetTextureLOD(Texture2D targetTexture, float baseLambda)
     uint texWidth, texHeight, numMips;
     targetTexture.GetDimensions(0, texWidth, texHeight, numMips);
 
-    return max(0.0, texWidth && texHeight ? baseLambda + 0.5 * log2(texWidth * texHeight) : baseLambda);
+    return max(0.0, baseLambda + 0.5 * log2(texWidth * texHeight));
 }
