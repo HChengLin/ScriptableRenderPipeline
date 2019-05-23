@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Rendering.LWRP;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -50,12 +51,12 @@ class EditorTests
         }
     }
 
-    // Creates a RendererTemplate file without any errors.
+    // Validate that resources Guids are valid
     [Test]
-    public void CreateRendererTemplateWithoutErrors()
+    public void ValidateBuiltinResourceFiles()
     {
-        NewRendererFeatureDropdownItem.CreateNewRendererFeature();
-        LogAssert.NoUnexpectedReceived();
+        string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
+        Assert.IsFalse(string.IsNullOrEmpty(templatePath));
     }
 
     // When creating LWRP all required resources should be initialized.
