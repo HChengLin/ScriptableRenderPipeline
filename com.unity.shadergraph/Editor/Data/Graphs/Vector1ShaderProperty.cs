@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
                             enumTypeString = "Enum";
                             break;
                         case EnumType.KeywordEnum:
-                            enumValuesString = enumNames.Aggregate((s, e) => s + ", " + e);
+                            enumValuesString = string.Join(", ", enumNames);
                             break;
                         default:
                         case EnumType.Enum:
