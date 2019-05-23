@@ -103,7 +103,9 @@ namespace UnityEditor.Rendering.LookDev
                 }
             }
         }
-        
+
+        CameraController m_CameraController = new CameraController();
+
         event Action<Layout, bool> OnLayoutChangedInternal;
         event Action<Layout, bool> IViewDisplayer.OnLayoutChanged
         {
@@ -206,9 +208,33 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(layout);
             ApplyEnvironmentToggling(showEnvironmentPanel);
+            
+            EditorApplication.update += ListenInputs;
+
         }
 
-        void OnDisable() => OnClosedInternal?.Invoke();
+        void ListenInputs()
+        {
+            switch(LookDev.currentContext.layout.lastFocusedView)
+            {
+                case ViewCompositionIndex.First:
+                    m_CameraController.Update(LookDev.currentContext.GetViewContent(ViewIndex.First).camera);
+                    break;
+                case ViewCompositionIndex.Second:
+                    m_CameraController.Update(LookDev.currentContext.GetViewContent(ViewIndex.Second).camera);
+                    break;
+                case ViewCompositionIndex.Composite:
+                    m_CameraController.Update(LookDev.currentContext.GetViewContent(ViewIndex.First).camera);
+                    LookDev.currentContext.SynchronizeCameraStates(ViewIndex.First);
+                    break;
+            }
+        }
+
+        void OnDisable()
+        {
+            EditorApplication.update -= ListenInputs;
+            OnClosedInternal?.Invoke();
+        }
 
         void CreateToolbar()
         {

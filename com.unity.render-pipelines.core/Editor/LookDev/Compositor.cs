@@ -99,8 +99,8 @@ namespace UnityEditor.Rendering.LookDev
 
             m_RenderDataCache = new RenderingData[2]
             {
-                new RenderingData() { stage = stages[ViewIndex.First] },
-                new RenderingData() { stage = stages[ViewIndex.Second] }
+                new RenderingData() { stage = stages[ViewIndex.First], updater = contexts.GetViewContent(ViewIndex.First).camera },
+                new RenderingData() { stage = stages[ViewIndex.Second], updater = contexts.GetViewContent(ViewIndex.Second).camera }
             };
 
             m_Displayer.OnRenderDocAcquisitionTriggered += RenderDocAcquisitionRequested;

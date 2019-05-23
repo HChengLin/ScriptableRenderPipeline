@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.LookDev
     {
         public bool resized;
         public Stage stage;
+        public ICameraUpdater updater;
         public Rect viewPort;
         public RenderTexture output;
     }
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.LookDev
             var oldOutput = data.output;
             data.output = RenderTextureCache.UpdateSize(
                 data.output, data.viewPort, pixelPerfect, data.stage.camera);
+            data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
             data.resized = oldOutput != data.output;
         }

@@ -86,12 +86,28 @@ namespace UnityEditor.Rendering.LookDev
             string path = AssetDatabase.GUIDToAssetPath(environmentLibraryGUID);
             environmentLibrary = AssetDatabase.LoadAssetAtPath<EnvironmentLibrary>(path);
         }
+
+        public void SynchronizeCameraStates(ViewIndex baseCameraState)
+        {
+            switch(baseCameraState)
+            {
+                case ViewIndex.First:
+                    m_Views[1].camera.SynchronizeFrom(m_Views[0].camera);
+                    break;
+                case ViewIndex.Second:
+                    m_Views[0].camera.SynchronizeFrom(m_Views[1].camera);
+                    break;
+                default:
+                    throw new System.ArgumentException("Unknow ViewIndex given in parameter.")
+            }
+        }
     }
     
     [System.Serializable]
     public class LayoutContext
     {
         public Layout viewLayout;
+        public ViewCompositionIndex lastFocusedView = ViewCompositionIndex.First;
         public bool showEnvironmentPanel;
 
         [SerializeField]
